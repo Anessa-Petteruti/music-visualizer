@@ -19,6 +19,9 @@ state CURRENT_STATE;
 
 int shift = 0;
 
+bool music_received;
+bool music_playing;
+
 EasyButton recButton(REC_BTN_PIN);
 
 void setup() {
@@ -33,6 +36,8 @@ void setup() {
   recButton.onPressed(recButtonHandle);
   
   CURRENT_STATE = (state) 1;
+
+  music_received = false;
 }
 
 void recButtonHandle() {
@@ -53,11 +58,21 @@ void display_default() {
   }
   FastLED.show();
   delay(100);
-}
+} 
 
 void update_inputs(){
   recButton.read();
   shift = analogRead(POTEN_PIN);
+}
+
+void wait_for_receive(){
+  // TODO get the music, and set recieved = true once the music has been recieved
+  music_received = true;
+  rec_button_pressed = false;
+}
+
+void recieve_music(){
+  // TODO what does this look like?
 }
 
 
@@ -65,12 +80,32 @@ state update_fsm(state cur_state, long mils) {
   state next_state;
   switch(cur_state) {
   case sDEFAULT_PATTERN:
-    next_state = sDEFAULT_PATTERN;
-    display_default();
+    if(rec_button_pressed){
+      wait_for_receive();
+    } else {
+      next_state = sDEFAULT_PATTERN;
+      display_default();
+    }
     break;
   case sRECIEVE_CONNECTION:
-    next_state = sDEFAULT_PATTERN;
+  if(music_received){
+    
+  } else {
+    recieve_music();
+    // TODO update variables
+    next_state = sRECIEVE_CONNECTION;
+  }
   break;
+  case sMUSIC_PATTERN:
+    if(music_playing){
+      display_pattern();
+      // TODO update variables
+      next_state = sMUSIC_PATTERN;
+      if(rec_button_pressed){
+        wait_for_receive();
+        next_state = sRECIEVE_CONNECTION;
+      }
+    } 
   }
 //  Serial.print(cur_state);
 //  Serial.print(" -> ");
