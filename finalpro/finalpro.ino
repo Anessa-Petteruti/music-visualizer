@@ -2,6 +2,12 @@
 #include <EasyButton.h>
 #include "lab5.h"
 
+/* From Lab 7 */
+// #include <SPI.h> is this needed?
+#include <WiFi101.h>
+
+WiFiClient client;
+
 #define NUM_LEDS 60
 #define LED_DATA_PIN 3
 #define LED_TYPE WS2812B
@@ -22,6 +28,11 @@ int shift = 0;
 bool music_received;
 bool music_playing;
 
+int num_increments = 600;
+int num_frequencies_per_increment = 60;
+int frequencies[num_increments][num_frequencies_per_increment];
+
+
 EasyButton recButton(REC_BTN_PIN);
 
 void setup() {
@@ -38,6 +49,40 @@ void setup() {
   CURRENT_STATE = (state) 1;
 
   music_received = false;
+
+  setup_wifi();
+}
+
+
+void setup_wifi() {
+  // attempt to connect to WiFi network:
+  while ( status != WL_CONNECTED) {
+    Serial.print("Attempting to connect to: ");
+    Serial.println(ssid);
+    status = WiFi.begin(ssid); // WiFi.begin(ssid, pass) for password
+    delay(10000);
+  }
+  Serial.println("Connected!");
+  Serial.println("Attempting to access music lights server");
+  if (connect_to_server()) {
+    Serial.println("We're in!");
+  } else {
+    Serial.println("Failed to access music lights server");
+  }
+  Serial.println();
+}
+
+bool connect_to_server() {
+  // https://arduinogetstarted.com/tutorials/arduino-http-request
+  if (client.connect("cs.brown.edu", 80)) { // TODO: connect(ip address -> array of 4 bytes, port) or connect(URL -> string, port)
+    client.println("GET /courses/csci1600/labs/lab7LED.txt HTTP/1.0"); // TODO
+    client.println("Host: cs.brown.edu"); // TODO
+    client.println();
+    return true;
+  } else {
+    Serial.println("Failed to fetch webpage");
+    return false;
+  }
 }
 
 void recButtonHandle() {
@@ -67,12 +112,52 @@ void update_inputs(){
 
 void wait_for_receive(){
   // TODO get the music, and set recieved = true once the music has been recieved
+
+  // populate frequencies array with new song data
+  receive_music();
+  
+  
   music_received = true;
   rec_button_pressed = false;
 }
 
-void recieve_music(){
-  // TODO what does this look like?
+void receive_music(){
+  //  while (client.available()) {
+  //    byte b = client.read(); // could also be char c
+  //    Serial.print(b);
+  //    // do something with b, a byte received from the server --> see what format this is, how to process to
+  //    // frequency list
+  //  }
+
+  // clear out frequencies array to prepare for new song
+  memset(frequencies, 0, sizeof(frequencies));
+
+  int len = client.available();
+ 
+  if (len > 0) {
+    int row_num = 0;
+    int column_num = 0;
+    byte buffer[9600]; // no clue how many bytes the song data will be
+
+    if (len > 9600) len = 9600;
+    client.read(buffer, len);
+
+    for (int i = 0; i < len; i++) {
+      int frequency = (int) buffer[i];
+      if (frequency == '\0') {
+        row_num++;
+        column_num = 0;
+      } else {
+        frequencies[row_num][column_num] = frequency;
+        column_num++;
+      }
+    }
+  }
+
+  if (!client.connected()) {
+    Serial.println("client disconnected");
+    client.stop(); // do we want this?
+  }
 }
 
 
@@ -91,7 +176,7 @@ state update_fsm(state cur_state, long mils) {
   if(music_received){
     
   } else {
-    recieve_music();
+    receive_music();
     // TODO update variables
     next_state = sRECIEVE_CONNECTION;
   }
