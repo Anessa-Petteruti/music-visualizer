@@ -26,7 +26,10 @@ from scipy.signal import argrelextrema
 import numpy as np
 from matplotlib import pyplot as plt
 
-filename = "wav_files/CantinaBand60.wav"
+
+
+
+
 
 # ==============================================
 
@@ -34,107 +37,112 @@ time_period = 0.1 # FFT time period (in seconds). Can comfortably process time f
 
 # ==============================================
 
-fs_rate, signal_original = wavfile.read(filename)
-total_time = int(np.floor(len(signal_original)/fs_rate))
-sample_range = np.arange(0,total_time,time_period)
-total_samples = len(sample_range)
+def freq_samples(filepath):
+        
 
-print ("Frequency sampling", fs_rate)
-print ("total time: ", total_time)
-print ("sample time period: ", time_period)
-print ("total samples: ", total_samples)
+    fs_rate, signal_original = wavfile.read(filepath)
+    total_time = int(np.floor(len(signal_original)/fs_rate))
+    sample_range = np.arange(0,total_time,time_period)
+    total_samples = len(sample_range)
 
-output_array = []
-for i in sample_range:
+    print ("Frequency sampling", fs_rate)
+    print ("total time: ", total_time)
+    print ("sample time period: ", time_period)
+    print ("total samples: ", total_samples)
 
-    # print ("Processing: %d / %d (%d%%)" % (i/time_period + 1, total_samples, (i/time_period + 1)*100/total_samples))
+    output_array = []
+    for i in sample_range:
 
-    sample_start = int(i*fs_rate)
-    sample_end = int((i+time_period)*fs_rate)
-    signal = signal_original[sample_start:sample_end]
+        # print ("Processing: %d / %d (%d%%)" % (i/time_period + 1, total_samples, (i/time_period + 1)*100/total_samples))
 
-    l_audio = len(signal.shape)
-    #print ("Channels", l_audio)
+        sample_start = int(i*fs_rate)
+        sample_end = int((i+time_period)*fs_rate)
+        signal = signal_original[sample_start:sample_end]
 
-    if l_audio == 2:
-        signal = signal.sum(axis=1) / 2
-    N = signal.shape[0]
-    #print ("Complete Samplings N", N)
+        l_audio = len(signal.shape)
+        #print ("Channels", l_audio)
 
-    secs = N / float(fs_rate)
-    # print ("secs", secs)
-    Ts = 1.0/fs_rate # sampling interval in time
-    #print ("Timestep between samples Ts", Ts)
+        if l_audio == 2:
+            signal = signal.sum(axis=1) / 2
+        N = signal.shape[0]
+        #print ("Complete Samplings N", N)
 
-    t = scipy.arange(0, secs, Ts) # time vector as scipy arange field / numpy.ndarray
+        secs = N / float(fs_rate)
+        # print ("secs", secs)
+        Ts = 1.0/fs_rate # sampling interval in time
+        #print ("Timestep between samples Ts", Ts)
 
-    FFT = abs(fft(signal))
-    FFT_side = FFT[range(int(N/2))] # one side FFT range
-    freqs = scipy.fftpack.fftfreq(signal.size, t[1]-t[0])
-    fft_freqs = np.array(freqs)
-    freqs_side = freqs[range(int(N/2))] # one side frequency range
-    fft_freqs_side = np.array(freqs_side)
+        t = scipy.arange(0, secs, Ts) # time vector as scipy arange field / numpy.ndarray
 
-    # Reduce to 0-5000 Hz
-    bucket_size = 5
-    buckets = 16
+        FFT = abs(fft(signal))
+        FFT_side = FFT[range(int(N/2))] # one side FFT range
+        freqs = scipy.fftpack.fftfreq(signal.size, t[1]-t[0])
+        fft_freqs = np.array(freqs)
+        freqs_side = freqs[range(int(N/2))] # one side frequency range
+        fft_freqs_side = np.array(freqs_side)
 
-    FFT_side = FFT_side[0:bucket_size*buckets]
-    fft_freqs_side = fft_freqs_side[0:bucket_size*buckets]
+        # Reduce to 0-5000 Hz
+        bucket_size = 5
+        buckets = 16
 
-    # Combine frequencies into buckets
-    FFT_side = np.array([int(sum(FFT_side[current: current+bucket_size])) for current in range(0, len(FFT_side), bucket_size)])
-    fft_freqs_side = np.array([int(sum(fft_freqs_side[current: current+bucket_size])) for current in range(0, len(fft_freqs_side), bucket_size)])
+        FFT_side = FFT_side[0:bucket_size*buckets]
+        fft_freqs_side = fft_freqs_side[0:bucket_size*buckets]
 
-    # FFT_side: Normalize (0-1)
-    max_value = max(FFT_side)
-    if (max_value != 0):
-        FFT_side_norm = FFT_side / max_value
+        # Combine frequencies into buckets
+        FFT_side = np.array([int(sum(FFT_side[current: current+bucket_size])) for current in range(0, len(FFT_side), bucket_size)])
+        fft_freqs_side = np.array([int(sum(fft_freqs_side[current: current+bucket_size])) for current in range(0, len(fft_freqs_side), bucket_size)])
 
-    # Append to output array
-    output_array.append(FFT_side_norm)
+        # FFT_side: Normalize (0-1)
+        max_value = max(FFT_side)
+        if (max_value != 0):
+            FFT_side_norm = FFT_side / max_value
 
-# Numpy array size=600x16 that has 600 rows of sampling freqs, with 16 Hz values per row
-output_array_np = np.asarray(output_array)
-print(output_array_np)
+        # Append to output array
+        output_array.append(FFT_side_norm)
 
-# ============================================
+    # Numpy array size=600x16 that has 600 rows of sampling freqs, with 16 Hz values per row
+    output_array_np = np.asarray(output_array)
+    print(output_array_np)
 
-# Plotting
+    return np.array2string(output_array_np.flatten(), separator=", ", threshold=9999999 )
 
-plt.figure(figsize=(8,10))
+    # ============================================
 
-plt.subplot(411)
-plt.plot(t, signal, "g") # plotting the signal
-plt.xlabel('Time')
-plt.ylabel('Amplitude')
+    # Plotting
 
-plt.subplot(412)
-diff = np.diff(fft_freqs_side)
-widths = np.hstack([diff, diff[-1]])
-plt.bar(fft_freqs_side, abs(FFT_side_norm), width=widths) # plotting the positive fft spectrum
-plt.xticks(fft_freqs_side, fft_freqs_side, rotation='vertical')
-plt.xlabel('Frequency (Hz)')
-plt.ylabel('Count single-sided')
+    plt.figure(figsize=(8,10))
 
-FFT_side_norm_line = FFT_side_norm.copy()
-FFT_side_norm_line.resize( (1,buckets) )
+    plt.subplot(411)
+    plt.plot(t, signal, "g") # plotting the signal
+    plt.xlabel('Time')
+    plt.ylabel('Amplitude')
 
-plt.subplot(413)
-plt.imshow(FFT_side_norm_line)
-plt.axis('off')
-plt.title('Image Representation (1D)')
+    plt.subplot(412)
+    diff = np.diff(fft_freqs_side)
+    widths = np.hstack([diff, diff[-1]])
+    plt.bar(fft_freqs_side, abs(FFT_side_norm), width=widths) # plotting the positive fft spectrum
+    plt.xticks(fft_freqs_side, fft_freqs_side, rotation='vertical')
+    plt.xlabel('Frequency (Hz)')
+    plt.ylabel('Count single-sided')
 
-width_img = int(np.sqrt(buckets))
-height_img = int(np.ceil(buckets / int(np.sqrt(buckets))))
-FFT_side_norm_rect = FFT_side_norm.copy()
-FFT_side_norm_rect.resize( (width_img,height_img) )
+    FFT_side_norm_line = FFT_side_norm.copy()
+    FFT_side_norm_line.resize( (1,buckets) )
 
-plt.subplot(414)
-plt.imshow(FFT_side_norm_rect)
-plt.axis('off')
-plt.title('Image Representation (2D): %d x %d' % (width_img,height_img))
+    plt.subplot(413)
+    plt.imshow(FFT_side_norm_line)
+    plt.axis('off')
+    plt.title('Image Representation (1D)')
 
-plt.show()
+    width_img = int(np.sqrt(buckets))
+    height_img = int(np.ceil(buckets / int(np.sqrt(buckets))))
+    FFT_side_norm_rect = FFT_side_norm.copy()
+    FFT_side_norm_rect.resize( (width_img,height_img) )
+
+    plt.subplot(414)
+    plt.imshow(FFT_side_norm_rect)
+    plt.axis('off')
+    plt.title('Image Representation (2D): %d x %d' % (width_img,height_img))
+
+    plt.show()
 
 # =======================================================
