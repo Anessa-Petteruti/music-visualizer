@@ -38,7 +38,7 @@ time_period = 0.1 # FFT time period (in seconds). Can comfortably process time f
 # ==============================================
 
 def freq_samples(filepath):
-        
+
 
     fs_rate, signal_original = wavfile.read(filepath)
     total_time = int(np.floor(len(signal_original)/fs_rate))
@@ -104,7 +104,9 @@ def freq_samples(filepath):
     output_array_np = np.asarray(output_array)
     print(output_array_np)
 
-    return np.array2string(output_array_np.flatten(), separator=", ", threshold=9999999 )
+    # return np.array2string(output_array_np.flatten(), separator=", ", threshold=9999999 )
+    return (np.arange(6000, dtype=np.uint8)%60).tobytes()
+    # return np.random.randint(60, size=6000)
 
     # ============================================
 

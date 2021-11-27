@@ -1,0 +1,19 @@
+import serial
+import time
+import os
+
+#pip install pyobjc
+#pip install playsound
+from playsound import playsound
+# playsound('/Users/filip/Desktop/CS/CS1600/music-visualizer/finalpro/wav_files/CantinaBand60.wav')
+
+
+arduino = serial.Serial(port='/dev/cu.usbmodem145301', baudrate=9600, timeout=.1)
+# arduino = serial.Serial(port='/dev/cu.usbserial-1430', baudrate=9600, timeout=.1)
+
+while True:
+    recd = str(arduino.readline())
+    print(repr(recd))
+    if recd == "b'playmusic'":
+        print("inside")
+        playsound('/Users/filip/Desktop/CS/CS1600/music-visualizer/finalpro/wav_files/CantinaBand60.wav')
