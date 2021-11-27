@@ -46,6 +46,8 @@ print ("total samples: ", total_samples)
 
 output_array = []
 output_tuple_amp_freq = []
+freq_ind_list = []
+final_fa = []
 
 for i in sample_range:
 
@@ -71,9 +73,8 @@ for i in sample_range:
     t = scipy.arange(0, secs, Ts) # time vector as scipy arange field / numpy.ndarray
 
     FFT = abs(fft(signal))
-    # print(FFT.shape)
     FFT_side = FFT[range(int(N/2))] # one side FFT range
-    #I think this is printing the corresponding amplitudes, so make dict of amps:freqs
+    
     freqs = scipy.fftpack.fftfreq(signal.size, t[1]-t[0])
     fft_freqs = np.array(freqs)
     freqs_side = freqs[range(int(N/2))] # one side frequency range
@@ -95,14 +96,28 @@ for i in sample_range:
         FFT_side_norm = FFT_side / max_value
     
     # Get indices of top 5 frequencies in each of the 600 buckets:
-    freq_ind = np.argpartition(FFT_side_norm, -5)[-5:]
-    print(freq_ind)
+    freq_ind = np.argpartition(-FFT_side_norm, 5)[:5]
+    # print(freq_ind)
 
-    # TODO - Get corresponding amplitudes at these indices:
+    # Calculate amplitudes of FFT frequency values:
+    amplitudes = 1/total_samples * np.abs(FFT_side_norm)
+    # print(amplitudes.shape)
 
-    # Append to output array
-    output_array.append(FFT_side_norm)
-    # output_tuple_amp_freq.append((amps, FFT_side_norm))
+    # Add amps and freqs to dictionary:
+    output_tuple_amp_freq.append((amplitudes, FFT_side_norm))
+
+    for tupley in range(len(output_tuple_amp_freq)):
+        # Get corresponding amplitudes at these indices:
+        top_freqs = [output_tuple_amp_freq[tupley][1][i] for i in freq_ind]
+
+    final_fa.append((amplitudes, top_freqs))
+
+# dct = dict(map(reversed, final_fa))
+# print(dct)
+
+final_fa_np = np.asarray(final_fa)
+# print(final_fa_np.shape)
+
 
 # ============================================
 
