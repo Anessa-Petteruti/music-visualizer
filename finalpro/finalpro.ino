@@ -12,6 +12,9 @@
 CRGB leds[NUM_LEDS];
 EasyButton recButton(REC_BTN_PIN);
 
+#define TESTING
+all_tests();
+
 /* WIFI IMPS/VARS - From Lab 7 */
 #include <SPI.h>
 #include <WiFi101.h>
@@ -115,7 +118,8 @@ void setup_wifi() {
 
 void loop() {
   update_inputs();
-  CURRENT_STATE = update_fsm(CURRENT_STATE, millis());
+  CURRENT_STATE = update_fsm(CURRENT_STATE);
+//  CURRENT_STATE = update_fsm(CURRENT_STATE, millis()); // TODO: Replaced with above line bc not using mils anymore. Can update if want to start using mils again.
   delay(10);
 }
 
@@ -267,12 +271,12 @@ void display_pattern(){
 }
 
 
-state update_fsm(state cur_state, long mils) {
+state update_fsm(state cur_state) {
   state next_state;
 //  Serial.println(next_state);
   switch(cur_state) {
   case sDEFAULT_PATTERN:
-    if(rec_button_pressed){
+    if (rec_button_pressed){
       wait_for_receive();
       next_state = sRECIEVE_CONNECTION;
     } else {
@@ -282,19 +286,19 @@ state update_fsm(state cur_state, long mils) {
     }
     break;
   case sRECIEVE_CONNECTION:
-  if(music_received){
-    //TODO: this is temporary
-    Serial.println("leaving recieve music");
-    next_state = sDEFAULT_PATTERN;
-  } else {
-    receive_music();
-    
-    // TODO update variables
-    next_state = sRECIEVE_CONNECTION;
-  }
+    if (music_received){
+      //TODO: this is temporary
+      Serial.println("leaving recieve music");
+      next_state = sDEFAULT_PATTERN;
+    } else {
+      receive_music();
+ 
+      // TODO update variables
+      next_state = sRECIEVE_CONNECTION;
+    }
   break;
   case sMUSIC_PATTERN:
-    if(music_playing){
+    if (music_playing){
       display_pattern();
       // TODO update variables
       next_state = sMUSIC_PATTERN;
@@ -322,3 +326,11 @@ void WDT_Handler() {
 //  delay(2000);
   Serial.println("might reset");
 }
+
+
+
+#ifndef TESTING
+/* ACTUAL HELPER FUNCTIONS - NOT MOCKS */
+
+#else
+/* MOCKED UP FUNCTIONS FOR TESTING */
