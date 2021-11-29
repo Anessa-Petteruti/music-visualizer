@@ -9,23 +9,29 @@
 #define POTEN_PIN 4
 #define REC_BTN_PIN 5
 #define MAX_CHSV_ANGLE 240
+#define MAX_SONG_LEN 10000
 CRGB leds[NUM_LEDS];
 EasyButton recButton(REC_BTN_PIN);
 
-#define TESTING
-all_tests();
+//#define TESTING
+//all_tests();
 
 /* WIFI IMPS/VARS - From Lab 7 */
 #include <SPI.h>
 #include <WiFi101.h>
 WiFiClient client;
 
-char ssid[] = "WMBD4";        // your network SSID (name)
-char pass[] = "1801701128";    // your network password (use for WPA, or use as key for WEP)
+char ssid[] = "Ligma2";        // your network SSID (name)
+char pass[] = "politephoenix279";    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;
-char server[] = "192.168.1.174"; // your computers ipv4 address
+char server[] = "192.168.5.128"; // your computers ipv4 address
 
-uint8_t mybuf[10000];
+uint8_t song_buf[MAX_SONG_LEN];
+int cur_song_spot;
+int song_length;
+#define FREQS_PER_TIME 5
+
+uint8_t* newb;
 
 
 #include "lab5.h"
@@ -41,7 +47,7 @@ int default_light_shift = 0;
 
 bool music_received;
 bool music_playing;
-bool rec_button_pressed;
+bool rec_button_pressed = false;
 
 
 void setup() {
@@ -153,14 +159,12 @@ void wait_for_receive(){
   // populate frequencies array with new song data
   receive_music();
   
-  
   music_received = true;
   rec_button_pressed = false;
 }
 
 void receive_music(){
   Serial.write("in recieve music");
-  String readString;
   
   for (int i = 0; i < NUM_LEDS; i++) {
     leds[i] = CHSV(0, SATURATION, BRIGHTNESS);
@@ -170,6 +174,7 @@ void receive_music(){
   WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
 
   if (client.connect(server, 5000)) {
+    WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
 
     Serial.println("connected to server");
 
@@ -181,10 +186,11 @@ void receive_music(){
   }
 
   int counter = 0;
-  uint8_t* readptr = &(mybuf[0]);
+  uint8_t* readptr = &(song_buf[0]);
   while (client.connected()) {
       WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
       if (client.available()) {
+        WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
         int c = client.read(readptr, 6157);
         readptr = &(readptr[c+1]);
         counter += 1;
@@ -232,31 +238,57 @@ void receive_music(){
   //TODO: Split this out to a new function (this is the "playing of the song")
   //      - potentially send via serial to another python program to play the music
   //      - potentially recieve volume info via serial to assert brightness
-  //      - read first 2 bytes of buffer to determine song length <- IMPORTANT
-  //      - fix for-loop limits according to above todo
   //      - adjust delay at bottom to match timing as closely as possible
+
   Serial.println(counter);
   Serial.println("HELLO");
+
   int i;
-  uint8_t* newb = &(mybuf[137]);
+  int breaker = 0;
+
+  for(i=0; i<300; i++){ //header is certainly less than 300 bytes long
+    if(song_buf[i] == 13 and song_buf[i+1] == 10 and song_buf[i+2] == 13 and song_buf[i+3] == 10) {
+      //Sequence which signifies the end of the header and the beginning of the actual payload
+      breaker = i+4;
+    }
+  }
+  Serial.println("breaker");
+  Serial.println(breaker);
+
+  newb = &(song_buf[breaker]);
+
+  
 
   WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
   delay(2000);
-  FastLED.clear();
-  for(i = 137; i<7000;i=i+5){
-    WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
-    int inc;
-    shift = map(analogRead(POTEN_PIN), 0, 1023, 0, MAX_CHSV_ANGLE);
-    for(inc =0; inc<5; inc++){
-      Serial.println("newb");
-      Serial.println(i+inc);
-      Serial.println(mybuf[i+inc]);
-      leds[mybuf[i+inc]] = CHSV((map(mybuf[i+inc], 0, NUM_LEDS, 0, MAX_CHSV_ANGLE) + shift) % MAX_CHSV_ANGLE, SATURATION, BRIGHTNESS);
-    }
-    FastLED.show();
-    delay(42);
-    FastLED.clear();
-  }
+  //TODO double check this calculation
+  int total_len;
+  total_len = newb[1];
+  total_len = total_len *256;
+  total_len = total_len | newb[0];
+
+  //set song length and current position in song
+  song_length = total_len;
+  cur_song_spot = breaker+2;
+  
+  Serial.println("length");
+  Serial.println(total_len);
+
+  
+  
+
+//  FastLED.clear();
+//  for(i = 2; i<total_len;i=i+5){
+//    WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
+//    int inc;
+//    shift = map(analogRead(POTEN_PIN), 0, 1023, 0, MAX_CHSV_ANGLE);
+//    for(inc =0; inc<5; inc++){
+//      leds[mybuf[i+inc]] = CHSV((map(mybuf[i+inc], 0, NUM_LEDS, 0, MAX_CHSV_ANGLE) + shift) % MAX_CHSV_ANGLE, SATURATION, BRIGHTNESS);
+//    }
+//    FastLED.show();
+//    delay(42);
+//    FastLED.clear();
+//  }
   
   if (!client.connected()) {
     Serial.println("client disconnected");
@@ -264,16 +296,29 @@ void receive_music(){
   }
 }
 
-
 //TODO: move above display logic into this function and call in the right places etc.
 void display_pattern(){
+  FastLED.clear();
+  WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
+  int inc;
   
+  shift = map(analogRead(POTEN_PIN), 0, 1023, 0, MAX_CHSV_ANGLE);
+  for(inc =0; inc<FREQS_PER_TIME; inc++){
+    uint8_t curLED = newb[cur_song_spot+inc];
+    leds[curLED] = CHSV((map(curLED, 0, NUM_LEDS, 0, MAX_CHSV_ANGLE) + shift) % MAX_CHSV_ANGLE, SATURATION, BRIGHTNESS);
+  }
+  
+  FastLED.show();
+
+  delay(42);
 }
 
 
 state update_fsm(state cur_state) {
+  WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
   state next_state;
-//  Serial.println(next_state);
+  
+
   switch(cur_state) {
   case sDEFAULT_PATTERN:
     if (rec_button_pressed){
@@ -289,7 +334,9 @@ state update_fsm(state cur_state) {
     if (music_received){
       //TODO: this is temporary
       Serial.println("leaving recieve music");
-      next_state = sDEFAULT_PATTERN;
+      music_playing = true;
+      rec_button_pressed = false;
+      next_state = sMUSIC_PATTERN;
     } else {
       receive_music();
  
@@ -301,12 +348,20 @@ state update_fsm(state cur_state) {
     if (music_playing){
       display_pattern();
       // TODO update variables
+      music_playing = (cur_song_spot + 5) < song_length;  //make sure theres more music to be played
+      cur_song_spot = cur_song_spot + FREQS_PER_TIME;
+
       next_state = sMUSIC_PATTERN;
+
       if(rec_button_pressed){
         wait_for_receive();
         next_state = sRECIEVE_CONNECTION;
       }
-    } 
+    } else {
+      //maybe just wait here forever in order to actually use the WDT for something...
+       next_state = sDEFAULT_PATTERN;
+    }
+   break;
   }
 //  Serial.print(cur_state);
 //  Serial.print(" -> ");
@@ -328,9 +383,9 @@ void WDT_Handler() {
 }
 
 
-
-#ifndef TESTING
-/* ACTUAL HELPER FUNCTIONS - NOT MOCKS */
-
-#else
-/* MOCKED UP FUNCTIONS FOR TESTING */
+//
+//#ifndef TESTING
+///* ACTUAL HELPER FUNCTIONS - NOT MOCKS */
+//
+//#else
+///* MOCKED UP FUNCTIONS FOR TESTING */
