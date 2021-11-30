@@ -77,10 +77,10 @@ def freq_samples(filepath):
         output_array.append(FFT_side_norm)
     # Numpy array size=600x16 that has 600 rows of sampling freqs, with 16 Hz values per row
     output_array_np = np.asarray(output_array)
-    print(output_array_np)
+    # print(output_array_np)
 
     # return np.array2string(output_array_np.flatten(), separator=", ", threshold=9999999 )
-    return (np.arange(6000, dtype=np.uint8)%60).tobytes()
+    return (np.arange(60, dtype=np.uint8)%60).tobytes()
 
     # ============================================
 

@@ -21,10 +21,10 @@ EasyButton recButton(REC_BTN_PIN);
 #include <WiFi101.h>
 WiFiClient client;
 
-char ssid[] = "";        // your network SSID (name)
-char pass[] = "";    // your network password (use for WPA, or use as key for WEP)
+char ssid[] = "Brown-Guest";        // your network SSID (name)
+char pass[] = "politephoenix279";    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;
-char server[] = "192.168.5.128"; // your computers ipv4 address
+char server[] = "10.38.41.218"; // your computers ipv4 address
 
 uint8_t song_buf[MAX_SONG_LEN];
 int cur_song_spot;
@@ -106,7 +106,8 @@ void setup_wifi() {
     Serial.print("Attempting to connect to SSID: ");
     Serial.println(ssid);
     
-    status = WiFi.begin(ssid, pass);
+//    status = WiFi.begin(ssid, pass);
+    status = WiFi.begin(ssid);
     WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
     delay(1000);
   }
@@ -140,11 +141,11 @@ void display_default() {
   WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
   
   for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CHSV((map(i, 0, NUM_LEDS, 0, MAX_CHSV_ANGLE) + default_light_shift) % MAX_CHSV_ANGLE, SATURATION, BRIGHTNESS);
+    leds[i] = CHSV((map(i, 0, NUM_LEDS-1, 0, MAX_CHSV_ANGLE) + default_light_shift) % MAX_CHSV_ANGLE, SATURATION, BRIGHTNESS);
   }
   FastLED.show();
   default_light_shift = (default_light_shift + 10) % MAX_CHSV_ANGLE;
-  delay(100);
+  delay(75);
 }
 
 
@@ -235,9 +236,9 @@ void receive_music(){
 
   
 
-  //TODO: Split this out to a new function (this is the "playing of the song")
-  //      - potentially send via serial to another python program to play the music
-  //      - potentially recieve volume info via serial to assert brightness
+  //TODO: 
+  //      - send via serial to another python program to play the music
+  //      - potentially recieve volume info via serial to assert brightness (more of a stretch)
   //      - adjust delay at bottom to match timing as closely as possible
 
   Serial.println(counter);
@@ -249,6 +250,7 @@ void receive_music(){
   for(i=0; i<300; i++){ //header is certainly less than 300 bytes long
     if(song_buf[i] == 13 and song_buf[i+1] == 10 and song_buf[i+2] == 13 and song_buf[i+3] == 10) {
       //Sequence which signifies the end of the header and the beginning of the actual payload
+      // -the index where our payload actually starts
       breaker = i+4;
     }
   }
@@ -269,6 +271,7 @@ void receive_music(){
 
   //set song length and current position in song
   song_length = total_len;
+  //+2 to account for first two bytes representing data length
   cur_song_spot = breaker+2;
   
   Serial.println("length");
@@ -310,6 +313,7 @@ void display_pattern(){
   
   FastLED.show();
 
+  //TODO: ADJUST THIS
   delay(42);
 }
 
@@ -348,7 +352,7 @@ state update_fsm(state cur_state) {
     if (music_playing){
       display_pattern();
       // TODO update variables
-      music_playing = (cur_song_spot + 5) < song_length;  //make sure theres more music to be played
+      music_playing = (cur_song_spot + FREQS_PER_TIME) < song_length;  //make sure theres more music to be played
       cur_song_spot = cur_song_spot + FREQS_PER_TIME;
 
       next_state = sMUSIC_PATTERN;

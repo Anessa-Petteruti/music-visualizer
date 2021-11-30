@@ -2,7 +2,7 @@
 #include <WiFi101.h>
 //#include "arduino_secrets.h"
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
-char ssid[] = "WMBD4";        // your network SSID (name)
+char ssid[] = "Brown-Guest";        // your network SSID (name)
 char pass[] = "1801701128";    // your network password (use for WPA, or use as key for WEP)
 int keyIndex = 0;            // your network key Index number (needed only for WEP)
 
@@ -11,7 +11,7 @@ int status = WL_IDLE_STATUS;
 // use the numeric IP instead of the name for the server:
 //IPAddress server(74,125,232,128);  // numeric IP for Google (no DNS)
 //char server[] = "www.google.com";    // name address for Google (using DNS)
-char server[] = "192.168.1.174";
+char server[] = "10.38.41.218";
 //IPAddress 
 
 // Initialize the Ethernet client library
@@ -53,8 +53,8 @@ void setup() {
 
     // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
 
-    status = WiFi.begin(ssid, pass);
-
+//    status = WiFi.begin(ssid, pass);
+    status = WiFi.begin(ssid);
     // wait 10 seconds for connection:
 
     delay(10000);
@@ -100,27 +100,72 @@ void loop() {
 
   // if there are incoming bytes available
 
-  // from the server, read them and print them:
-  int counter = 0;
-  uint8_t* readptr = &(mybuf[0]);
+//  // from the server, read them and print them:
+//  int counter = 0;
+//  uint8_t* readptr = &(mybuf[0]);
+//  while (client.connected()) {
+//      if (client.available()) {
+//        int c = client.read(readptr, 256);
+////        char c = client.read();
+//        readptr = &(readptr[c+1]);
+//        Serial.println(c);
+//        counter += (c+1);
+//      }
+//  }
+
+//  uint8_t mybuf2[2000];
+  int counter=0;
   while (client.connected()) {
+      WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
       if (client.available()) {
-        int c = client.read(readptr, 6157);
-//        char c = client.read();
-        readptr = &(readptr[c+1]);
-        Serial.println(c);
-        counter += 1;
+        char c = client.read();
+        mybuf[counter] = c;
+        counter +=  1;
       }
   }
+
+
 //  Serial.println(readString);
   Serial.println(counter);
   Serial.println("HELLO");
 //  Serial.println(mybuf[1000], HEX);
 //  Serial.println(mybuf[2000], HEX);
   int i;
-  for(i = 0; i<7000;i++){
-    Serial.println(mybuf[i], HEX);
+  for(i = 1; i<1500;i++){
+    Serial.print(mybuf[i], HEX);
+    Serial.print(" - ");
+    Serial.println(i);
+//    Serial.println(mybuf[i] - mybuf[i-1]);
+    if((mybuf[i] - mybuf[i-1]) != 1 and (mybuf[i] - mybuf[i-1]) != 59) {
+      Serial.print("error! ");
+      Serial.println(i); //0 @ 158 end at 1157 
+    }
   } 
+
+//reading chunk of 1000 c =
+//  17
+//1140
+//1159
+////errors at
+//414
+//670
+//926
+//1019 <- doenst follow pattern...
+
+//reading chunk 256 c = 
+////17
+//256
+//256
+//256
+//256
+//116
+//1163
+//errors at
+//275
+//415
+//672
+
+
 //  Serial.println("split");
 //  uint8_t* newb = &(mybuf[137]);
 //  for(i = 0; i<5863;i++){
