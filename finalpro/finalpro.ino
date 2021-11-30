@@ -21,8 +21,8 @@ EasyButton recButton(REC_BTN_PIN);
 #include <WiFi101.h>
 WiFiClient client;
 
-char ssid[] = "Ligma2";        // your network SSID (name)
-char pass[] = "politephoenix279";    // your network password (use for WPA, or use as key for WEP)
+char ssid[] = "";        // your network SSID (name)
+char pass[] = "";    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;
 char server[] = "192.168.5.128"; // your computers ipv4 address
 
@@ -34,7 +34,7 @@ int song_length;
 uint8_t* newb;
 
 
-#include "lab5.h"
+#include "finalpro.h"
 
 
 
