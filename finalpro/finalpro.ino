@@ -47,7 +47,7 @@ int default_light_shift = 0;
 
 bool music_received;
 bool music_playing;
-bool rec_button_pressed = false;
+bool rec_button_pressed;
 
 
 void setup() {
@@ -94,6 +94,7 @@ void setup() {
   CURRENT_STATE = (state) 1;
 
   music_received = false;
+  music_playing = false;
   rec_button_pressed = false;
 
   setup_wifi();
@@ -134,6 +135,7 @@ void loop() {
 void recButtonHandle() {
   //TODO update a button counter somewhere to note that a button has been pressed and that we should recieve music now from serial/wifi
   rec_button_pressed = true;
+  music_playing = !music_playing;
 }
 
 //Function to display a moment of the default light show
@@ -159,8 +161,6 @@ void wait_for_receive(){
 
   // populate frequencies array with new song data
   receive_music();
-  
-  music_received = true;
   rec_button_pressed = false;
 }
 
@@ -292,11 +292,29 @@ void receive_music(){
 //    delay(42);
 //    FastLED.clear();
 //  }
+
+  music_received = true;
   
   if (!client.connected()) {
     Serial.println("client disconnected");
     client.stop(); // do we want this?
   }
+}
+
+void toggle_music() {
+  if (music_playing) {
+    Serial.write("stopmusic");
+  } else {
+    Serial.write("playmusic");
+  }
+}
+
+void play_music() {
+  Serial.write("playmusic");
+}
+
+void stop_music() {
+  Serial.write("stopmusic");
 }
 
 //TODO: move above display logic into this function and call in the right places etc.
@@ -335,10 +353,13 @@ state update_fsm(state cur_state) {
     }
     break;
   case sRECIEVE_CONNECTION:
-    if (music_received){
+    if (music_received) {
       //TODO: this is temporary
       Serial.println("leaving recieve music");
-      music_playing = true;
+      // music_playing = true; Don't think we want this here because music_playing already getting toggled in recButtonHandle() -Ailita
+
+      // send message to computer to play/stop music
+      toggle_music();
       rec_button_pressed = false;
       next_state = sMUSIC_PATTERN;
     } else {
@@ -349,7 +370,7 @@ state update_fsm(state cur_state) {
     }
   break;
   case sMUSIC_PATTERN:
-    if (music_playing){
+    if (music_playing) {
       display_pattern();
       // TODO update variables
       music_playing = (cur_song_spot + FREQS_PER_TIME) < song_length;  //make sure theres more music to be played
@@ -357,7 +378,7 @@ state update_fsm(state cur_state) {
 
       next_state = sMUSIC_PATTERN;
 
-      if(rec_button_pressed){
+      if (rec_button_pressed) {
         wait_for_receive();
         next_state = sRECIEVE_CONNECTION;
       }

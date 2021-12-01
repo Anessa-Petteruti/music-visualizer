@@ -1,4 +1,4 @@
-song = '/Users/filip/Desktop/CS/CS1600/music-visualizer/finalpro/wav_files/CantinaBand60.wav'
+# song = '/Users/filip/Desktop/CS/CS1600/music-visualizer/finalpro/wav_files/CantinaBand60.wav'
 # import pyaudio
 # import wave
 # import time
@@ -70,6 +70,10 @@ import serial
 p = pyaudio.PyAudio()
 arduino = serial.Serial(port='/dev/cu.usbmodem145301', baudrate=9600, timeout=.1)
 
+FILENAMES = ['wav_files/CantinaBand60.wav']
+NUMBER_OF_SONGS = len(FILENAMES)
+song_number = 0
+
 
 paused = False    # global to track if the audio is paused
 def on_press(key):
@@ -98,7 +102,11 @@ while True:
     print(recieved)
 
     if recieved == "b'playmusic'":
-        wf = wave.open('/Users/filip/Desktop/CS/CS1600/music-visualizer/finalpro/wav_files/CantinaBand60.wav', 'rb')
+        # cycle through the songs each time they request a new song
+        song_number += (song_number + 1) % NUMBER_OF_SONGS
+        filename = FILENAMES[song_number]
+        wf = wave.open(filename, 'rb')
+        # wf = wave.open('/Users/filip/Desktop/CS/CS1600/music-visualizer/finalpro/wav_files/CantinaBand60.wav', 'rb')
 
 
         # open stream using callback
