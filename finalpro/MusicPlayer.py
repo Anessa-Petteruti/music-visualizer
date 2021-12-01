@@ -68,7 +68,7 @@ import serial
 
 
 p = pyaudio.PyAudio()
-arduino = serial.Serial(port='/dev/cu.usbmodem145301', baudrate=9600, timeout=.1)
+arduino = serial.Serial(port='/dev/cu.usbmodem143301', baudrate=9600, timeout=.1)
 
 FILENAMES = ['wav_files/CantinaBand60.wav']
 NUMBER_OF_SONGS = len(FILENAMES)

@@ -88,6 +88,8 @@ def freq_samples(filename):
     freq_ind_list = []
     final_fa = []
 
+    freq_output = []
+
     for i in sample_range:
 
         # print ("Processing: %d / %d (%d%%)" % (i/time_period + 1, total_samples, (i/time_period + 1)*100/total_samples))
@@ -153,16 +155,23 @@ def freq_samples(filename):
         big_freqs = (fft_freqs_side.take(freq_ind)//(5000/60))
 
 
+
         final_fa.append((amplitudes, top_freqs))
+
+        freq_output.extend(big_freqs)
 
     # dct = dict(map(reversed, final_fa))
     # print(dct)
 
     final_fa_np = np.asarray(final_fa)
-    print(final_fa_np.shape)
-    print(freq_ind)
-    print(fft_freqs_side.take(freq_ind))
-    print(big_freqs)
+    # print(final_fa_np.shape)
+    # print(freq_ind)
+    # print(fft_freqs_side.take(freq_ind))
+    # print(big_freqs.astype(np.uint8))
+    print(freq_output)
+    print(len(freq_output))
+    freq_output = np.asarray(freq_output, dtype=np.uint8)
+    print(freq_output.tobytes())
 
 
     # print(final_fa[0][0].shape)
@@ -172,4 +181,6 @@ def freq_samples(filename):
     #     print(final_fa[i])
 
     #TODO: fix this!!
-    return (np.arange(60, dtype=np.uint8)%60).tobytes()
+    # return (np.arange(60, dtype=np.uint8)%60).tobytes()
+
+    return freq_output.tobytes()
