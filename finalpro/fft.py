@@ -96,11 +96,10 @@ def freq_samples(filename):
 
         sample_start = int(i*fs_rate)
         sample_end = int((i+time_period)*fs_rate)
-        signal = signal_original[sample_start:sample_end]
+        signal = signal_original[sample_start:sample_end, :]
 
         l_audio = len(signal.shape)
         #print ("Channels", l_audio)
-
         if l_audio == 2:
             signal = signal.sum(axis=1) / 2
         N = signal.shape[0]
@@ -128,6 +127,7 @@ def freq_samples(filename):
         FFT_side = FFT_side[0:bucket_size*buckets]
         fft_freqs_side = fft_freqs_side[0:bucket_size*buckets]
 
+
         # Combine frequencies into buckets
         FFT_side = np.array([int(sum(FFT_side[current: current+bucket_size])) for current in range(0, len(FFT_side), bucket_size)])
         fft_freqs_side = np.array([int(sum(fft_freqs_side[current: current+bucket_size])) for current in range(0, len(fft_freqs_side), bucket_size)])
@@ -135,6 +135,9 @@ def freq_samples(filename):
         max_value = max(FFT_side)
         if (max_value != 0):
             FFT_side_norm = FFT_side / max_value
+        else:
+            FFT_side_norm = FFT_side
+            # print("problem!")
 
         # Get indices of top 5 frequencies in each of the 600 buckets:
         freq_ind = np.argpartition(-FFT_side_norm, 5)[:5]
