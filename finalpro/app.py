@@ -1,6 +1,8 @@
 from flask import Flask
 import fft
 
+from MusicPlayer import FILENAMES, NUMBER_OF_SONGS
+
 
 # python3 -m pip install flask
 # have the arduino read from your internal ipv4 address (you can find this by runing 'ipconfig' or 'ifconfig')
@@ -8,11 +10,14 @@ import fft
 
 app = Flask(__name__)
 
-filename = "wav_files/CantinaBand60.wav"
+# filename = "wav_files/CantinaBand60.wav"
+song_number = 0
 
 
 @app.route("/data")
 def hello_world():
+    song_number += (song_number + 1) % NUMBER_OF_SONGS
+    filename = FILENAMES[song_number]
     string = fft.freq_samples(filename)*100
     output = len(string).to_bytes(2,byteorder='little') + string
     print("len output:::")
