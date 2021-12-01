@@ -21,10 +21,10 @@ EasyButton recButton(REC_BTN_PIN);
 #include <WiFi101.h>
 WiFiClient client;
 
-char ssid[] = "Brown-Guest";        // your network SSID (name)
+char ssid[] = "Ligma2";        // your network SSID (name)
 char pass[] = "politephoenix279";    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;
-char server[] = "10.38.41.218"; // your computers ipv4 address
+char server[] = "192.168.5.128"; // your computers ipv4 address
 
 uint8_t song_buf[MAX_SONG_LEN];
 int cur_song_spot;
@@ -106,8 +106,8 @@ void setup_wifi() {
     Serial.print("Attempting to connect to SSID: ");
     Serial.println(ssid);
     
-//    status = WiFi.begin(ssid, pass);
-    status = WiFi.begin(ssid);
+    status = WiFi.begin(ssid, pass);  //if using password
+//    status = WiFi.begin(ssid);  //if no password
     WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
     delay(1000);
   }
