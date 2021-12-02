@@ -33,9 +33,6 @@ def hello_world():
     # print(string)
     return len(string).to_bytes(2,byteorder='little') + string
 
-@app.route('/helloesp')
-def helloHandler():
-    return 'Hello ESP8266, from Flask'
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -62,12 +59,64 @@ def helloHandler():
 
     return '''
     <!doctype html>
+    <head>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+    <style>
+        body {
+            font-family: "Arial";
+            color: #ffde59;
+        }
+        h1 {
+            font-family: "Arial";
+            font-size: 100px;
+            color: #ffde59;
+            text-shadow: 1px 1px 2px black, 0 0 50px #ffde59, 0 0 5px #ffde59;
+        }
+        h2 {
+            font-family: "Arial";
+            font-size: 60px;
+            color: #ffde59;
+        }
+        input {
+            border-radius: 3px;
+            border-color: #ffde59;
+            border-width: 3px;
+            background-color: #000000;
+            color: #ffde59;
+            font-family: "Arial";
+            font-size: 30px;
+        }
+        label {
+            font-family: "Arial";
+            border-radius: 3px;
+            border-color: #ffde59;
+            border-width: 3px;
+            background-color: #000000;
+            color: #ffde59;
+            cursor: pointer;
+            font-size: 20px;
+            margin-bottom: 40px;
+            margin-right: 10px;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+    </head>
     <title>Arduino Song Upload</title>
     <body style="display: flex; flex-direction: column; align-items: center; justify-content:center; 
-    color: white; background-color: #323233">
-        <h1>Upload new .wav file to play</h1>
+    color: white; background-color: #000000">
+        <h1>MUSIC VISUALIZER</h1>
+        <h2>Upload Your .wav File</h2>
             <form method=post enctype=multipart/form-data>
-                <input type=file name=file>
+                <label>
+                    <input type=file name=file>
+                    Choose File
+                </label>
                 <input type=submit value=Upload>
             </form>
     </body>
@@ -76,4 +125,4 @@ def helloHandler():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', port='4001')
