@@ -162,7 +162,8 @@ def freq_samples(filename):
             # Get corresponding amplitudes at these indices:
             top_freqs = [output_tuple_amp_freq[tupley][1][i] for i in freq_ind]
 
-        big_freqs = (fft_freqs_side.take(freq_ind)//(5000/60))
+        big_freqs = fft_freqs_side.take(freq_ind)
+        big_freqs = (big_freqs//(max(big_freqs)/60))
 
 
 
