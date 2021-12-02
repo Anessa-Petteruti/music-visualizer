@@ -18,8 +18,8 @@ song_number = 0
 def hello_world():
     # song_number += (song_number + 1) % NUMBER_OF_SONGS
     # filename = FILENAMES[song_number]
-    filename = 'wav_files/hot-cross-buns.wav'
-    # filename = 'wav_files/CantinaBand60.wav'
+    # filename = 'wav_files/hot-cross-buns.wav'
+    filename = 'wav_files/CantinaBand60.wav'
     string = fft.freq_samples(filename)
     output = len(string).to_bytes(2,byteorder='little') + string
     print("len output:::")

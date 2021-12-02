@@ -96,7 +96,14 @@ def freq_samples(filename):
 
         sample_start = int(i*fs_rate)
         sample_end = int((i+time_period)*fs_rate)
-        signal = signal_original[sample_start:sample_end, :]
+        print("signal shape")
+        print(signal_original.shape)
+        print(len(signal_original.shape))
+        # if signal_original.shape ->
+        if(len(signal_original.shape) == 2):
+            signal = signal_original[sample_start:sample_end, :]
+        else:
+            signal = signal_original[sample_start:sample_end]
 
         l_audio = len(signal.shape)
         #print ("Channels", l_audio)
