@@ -96,9 +96,7 @@ def freq_samples(filename):
 
         sample_start = int(i*fs_rate)
         sample_end = int((i+time_period)*fs_rate)
-        print("signal shape")
-        print(signal_original.shape)
-        print(len(signal_original.shape))
+
         # if signal_original.shape ->
         if(len(signal_original.shape) == 2):
             signal = signal_original[sample_start:sample_end, :]
@@ -179,10 +177,7 @@ def freq_samples(filename):
     # print(freq_ind)
     # print(fft_freqs_side.take(freq_ind))
     # print(big_freqs.astype(np.uint8))
-    print(freq_output)
-    print(len(freq_output))
     freq_output = np.asarray(freq_output, dtype=np.uint8)
-    print(freq_output.tobytes())
 
 
     # print(final_fa[0][0].shape)

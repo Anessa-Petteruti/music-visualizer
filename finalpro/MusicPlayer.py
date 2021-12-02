@@ -4,13 +4,14 @@ import time
 from pynput import keyboard
 import serial
 import osascript
+import glob
 
 
 p = pyaudio.PyAudio()
 arduino = serial.Serial(port='/dev/cu.usbmodem144301', baudrate=9600, timeout=.1)
 
-FILENAMES = ['wav_files/CantinaBand60.wav', 'wav_files/hot-cross-buns.wav']
-NUMBER_OF_SONGS = len(FILENAMES)
+# FILENAMES = ['wav_files/CantinaBand60.wav', 'wav_files/hot-cross-buns.wav']
+# NUMBER_OF_SONGS = len(FILENAMES)
 song_number = 0
 
 
@@ -43,7 +44,10 @@ while True:
     if recieved == "b'playmusic'":
         # time.sleep(0.5)
         # cycle through the songs each time they request a new song
+        FILENAMES = glob.glob("./wav_files/*.wav")
+        NUMBER_OF_SONGS = len(FILENAMES)
         song_number = (song_number + 1) % NUMBER_OF_SONGS
+
         filename = FILENAMES[song_number]
         wf = wave.open(filename, 'rb')
         # wf = wave.open('/Users/filip/Desktop/CS/CS1600/music-visualizer/finalpro/wav_files/CantinaBand60.wav', 'rb')

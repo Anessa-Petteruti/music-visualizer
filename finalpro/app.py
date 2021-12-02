@@ -12,21 +12,24 @@ import os
 app = Flask(__name__)
 
 # filename = "wav_files/CantinaBand60.wav"
-FILENAMES = ['wav_files/CantinaBand60.wav', 'wav_files/hot-cross-buns.wav']
+# FILENAMES = ['wav_files/CantinaBand60.wav', 'wav_files/hot-cross-buns.wav']
 ALLOWED_EXTENSIONS = {'wav'}
 app.config['UPLOAD_FOLDER'] = 'wav_files'
-NUMBER_OF_SONGS = len(FILENAMES)
+# NUMBER_OF_SONGS = len(FILENAMES)
 song_number = 0
 
 
 @app.route("/data")
 def hello_world():
     global song_number
-    global NUMBER_OF_SONGS
-    global FILENAMES
+    # global NUMBER_OF_SONGS
+    # global FILENAMES
+    FILENAMES = glob.glob("./wav_files/*.wav")
+    NUMBER_OF_SONGS = len(FILENAMES)
     song_number = (song_number + 1) % NUMBER_OF_SONGS
-    print(glob.glob("./wav_files/*.wav"))
+    print(FILENAMES)
     filename = FILENAMES[song_number]
+
     # filename = 'wav_files/hot-cross-buns.wav'
     string = fft.freq_samples(filename)
     output = len(string).to_bytes(2,byteorder='little') + string
