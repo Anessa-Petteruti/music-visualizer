@@ -23,10 +23,10 @@ EasyButton recButton(REC_BTN_PIN);
 #include <WiFi101.h>
 WiFiClient client;
 
-char ssid[] = "Ligma2";        // your network SSID (name)
+char ssid[] = "Brown-Guest";        // your network SSID (name)
 char pass[] = "politephoenix279";    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;
-char server[] = "192.168.5.128"; // your computers ipv4 address
+char server[] = "10.38.44.7"; // your computers ipv4 address
 
 //SONG VARIABLES
 uint8_t song_buf[MAX_SONG_LEN];
@@ -105,8 +105,8 @@ void setup_wifi() {
     Serial.print("Attempting to connect to SSID: ");
     Serial.println(ssid);
     
-    status = WiFi.begin(ssid, pass);  //if using password
-//    status = WiFi.begin(ssid);  //if no password
+//    status = WiFi.begin(ssid, pass);  //if using password
+    status = WiFi.begin(ssid);  //if no password
     WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
     delay(1000);
   }
@@ -323,6 +323,7 @@ state update_fsm(state cur_state) {
       rec_button_pressed = false;
       Serial.write("playmusic");
       next_state = sMUSIC_PATTERN;
+      delay(450);   //delay so music player has time to react
     } else {
       receive_music();
       next_state = sRECIEVE_CONNECTION;

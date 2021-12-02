@@ -1,6 +1,8 @@
 from flask import Flask, flash, request, redirect, url_for
 from werkzeug.utils import secure_filename
 import fft
+import glob
+import os
 
 
 # python3 -m pip install flask
@@ -22,6 +24,7 @@ def hello_world():
     global NUMBER_OF_SONGS
     global FILENAMES
     song_number = (song_number + 1) % NUMBER_OF_SONGS
+    print(glob.glob("./wav_files/*.wav"))
     filename = FILENAMES[song_number]
     # filename = 'wav_files/hot-cross-buns.wav'
     string = fft.freq_samples(filename)
@@ -32,9 +35,9 @@ def hello_world():
     # print(string)
     return len(string).to_bytes(2,byteorder='little') + string
 
-@app.route('/helloesp')
-def helloHandler():
-    return 'Hello ESP8266, from Flask'
+# @app.route('/helloesp')
+# def helloHandler():
+#     return 'Hello ESP8266, from Flask'
 
 def allowed_file(filename):
     return '.' in filename and \
