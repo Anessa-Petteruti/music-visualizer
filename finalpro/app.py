@@ -63,11 +63,14 @@ def helloHandler():
     return '''
     <!doctype html>
     <title>Arduino Song Upload</title>
-    <h1>Upload new .wav file to play</h1>
-    <form method=post enctype=multipart/form-data>
-      <input type=file name=file>
-      <input type=submit value=Upload>
-    </form>
+    <body syle="display: flex; flex-direction: column; align-items: center; justify-content:center; 
+    color: white; background-color: #323233">
+        <h1>Upload new .wav file to play</h1>
+            <form method=post enctype=multipart/form-data>
+                <input type=file name=file>
+                <input type=submit value=Upload>
+            </form>
+    </body>
     '''
 
 
