@@ -2,6 +2,12 @@ from flask import Flask, flash, request, redirect, url_for
 from werkzeug.utils import secure_filename
 import os
 import fft
+import wave
+import contextlib
+
+
+
+
 
 
 # python3 -m pip install flask
@@ -33,10 +39,6 @@ def hello_world():
     # print(string)
     return len(string).to_bytes(2,byteorder='little') + string
 
-@app.route('/helloesp')
-def helloHandler():
-    return 'Hello ESP8266, from Flask'
-
 def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -57,7 +59,14 @@ def helloHandler():
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            with wave.open(file,'r') as f:
+                frames = f.getnframes()
+                rate = f.getframerate()
+                duration = frames / float(rate)
+                print(duration)
+                if duration < 180:
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
             return redirect(request.url)
 
     return '''
