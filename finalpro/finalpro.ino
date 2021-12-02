@@ -1,4 +1,4 @@
-/* IO IMPS/VARS */
+/* IO IMPORTS/VARS */
 #include <FastLED.h>
 #include <EasyButton.h>
 #define NUM_LEDS 60
@@ -16,7 +16,7 @@ EasyButton recButton(REC_BTN_PIN);
 //#define TESTING
 //all_tests();
 
-/* WIFI IMPS/VARS - From Lab 7 */
+/* WIFI IMPORTS/VARS - From Lab 7 */
 #include <SPI.h>
 #include <WiFi101.h>
 WiFiClient client;
@@ -26,13 +26,12 @@ char pass[] = "politephoenix279";    // your network password (use for WPA, or u
 int status = WL_IDLE_STATUS;
 char server[] = "192.168.5.128"; // your computers ipv4 address
 
+//SONG VARIABLES
 uint8_t song_buf[MAX_SONG_LEN];
+uint8_t* song_data;
 int cur_song_spot;
 int song_length;
 #define FREQS_PER_TIME 5
-
-uint8_t* newb;
-
 
 #include "finalpro.h"
 
@@ -79,8 +78,6 @@ void setup() {
   // Enable early warning interrupts on WDT:
   WDT->INTENSET.reg = WDT_INTENSET_EW;
   while (WDT->STATUS.bit.SYNCBUSY); 
-
-  ///
   
   pinMode(POTEN_PIN, INPUT);
   
@@ -123,10 +120,10 @@ void setup_wifi() {
   }
 }
 
+//
 void loop() {
   update_inputs();
   CURRENT_STATE = update_fsm(CURRENT_STATE);
-//  CURRENT_STATE = update_fsm(CURRENT_STATE, millis()); // TODO: Replaced with above line bc not using mils anymore. Can update if want to start using mils again.
   delay(10);
 }
 
@@ -154,10 +151,8 @@ void update_inputs(){
   recButton.read();
 }
 
+//Function which waits to recieve music and updates variables accordingly
 void wait_for_receive(){
-  // TODO get the music, and set recieved = true once the music has been recieved
-
-  // populate frequencies array with new song data
   receive_music();
   
   music_received = true;
@@ -165,7 +160,8 @@ void wait_for_receive(){
 }
 
 void receive_music(){
-  Serial.write("in recieve music");
+//  Serial.write("in recieve music");
+  Serial.write("stopmusic");
   
   for (int i = 0; i < NUM_LEDS; i++) {
     leds[i] = CHSV(0, SATURATION, BRIGHTNESS);
@@ -177,7 +173,7 @@ void receive_music(){
   if (client.connect(server, 5000)) {
     WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
 
-    Serial.println("connected to server");
+//    Serial.println("connected to server");
 
     // Make a HTTP request:
     client.println("GET /data HTTP/1.1");
@@ -198,49 +194,6 @@ void receive_music(){
       }
   }
 
-
-//Naive version:
-//    if (client.connect(server, 5000)) {
-//
-//      Serial.println("connected to server");
-//
-//    // Make a HTTP request:
-//
-////    client.println("GET /search?q=arduino HTTP/1.1");
-////
-////    client.println("Host: www.google.com");
-//    client.println("GET /data HTTP/1.1");
-//
-//    client.println("Connection: keep-alive");
-//    client.println();
-//
-//  }
-//  
-//  uint8_t mybuf2[10000];
-//  int counter2=0;
-//  while (client.connected()) {
-//      WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
-//      if (client.available()) {
-//        char c = client.read();
-//        mybuf2[counter2] = c;
-//        counter2 +=  1;
-//      }
-//  }
-//
-//  for(int i =0;i<6200;i++){
-//    if(mybuf[i] != mybuf2[i]){
-//      Serial.print("fail at: ");
-//      Serial.println(i);
-//    }
-//  }
-
-  
-
-  //TODO: 
-  //      - send via serial to another python program to play the music
-  //      - potentially recieve volume info via serial to assert brightness (more of a stretch)
-  //      - adjust delay at bottom to match timing as closely as possible
-
   Serial.println(counter);
   Serial.println("HELLO");
 
@@ -257,72 +210,60 @@ void receive_music(){
   Serial.println("breaker");
   Serial.println(breaker);
 
-  newb = &(song_buf[breaker]);
+  //set pointer to the start of the actual payload
+  song_data = &(song_buf[breaker]);
 
   
 
   WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
-  delay(2000);
-  //TODO double check this calculation
+  delay(1000);
+
+  //calculate total num samples of the data, stored in first two bytes
   int total_len;
-  total_len = newb[1];
+  total_len = song_data[1];
   total_len = total_len *256;
-  total_len = total_len | newb[0];
+  total_len = total_len | song_data[0];
 
   //set song length and current position in song
   song_length = total_len;
   //+2 to account for first two bytes representing data length
-  cur_song_spot = breaker+2;
+  cur_song_spot = 2;
   
   Serial.println("length");
   Serial.println(total_len);
 
-  
-  
-
-//  FastLED.clear();
-//  for(i = 2; i<total_len;i=i+5){
-//    WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
-//    int inc;
-//    shift = map(analogRead(POTEN_PIN), 0, 1023, 0, MAX_CHSV_ANGLE);
-//    for(inc =0; inc<5; inc++){
-//      leds[mybuf[i+inc]] = CHSV((map(mybuf[i+inc], 0, NUM_LEDS, 0, MAX_CHSV_ANGLE) + shift) % MAX_CHSV_ANGLE, SATURATION, BRIGHTNESS);
-//    }
-//    FastLED.show();
-//    delay(42);
-//    FastLED.clear();
-//  }
-  
   if (!client.connected()) {
     Serial.println("client disconnected");
     client.stop(); // do we want this?
   }
 }
 
-//TODO: move above display logic into this function and call in the right places etc.
+//Function which displays one unit time piece of the song on the LED strip
 void display_pattern(){
   FastLED.clear();
   WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
   int inc;
-  
+
+  //read shift from potentiometer to calculate LED colors
   shift = map(analogRead(POTEN_PIN), 0, 1023, 0, MAX_CHSV_ANGLE);
+  
+  //for each frequency in this chunk
   for(inc =0; inc<FREQS_PER_TIME; inc++){
-    uint8_t curLED = newb[cur_song_spot+inc];
+    uint8_t curLED = song_data[cur_song_spot+inc];
     leds[curLED] = CHSV((map(curLED, 0, NUM_LEDS, 0, MAX_CHSV_ANGLE) + shift) % MAX_CHSV_ANGLE, SATURATION, BRIGHTNESS);
   }
   
   FastLED.show();
 
   //TODO: ADJUST THIS
-  delay(85);
+  delay(77);
 }
 
-
+//Function to update our FSM 
 state update_fsm(state cur_state) {
   WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
   state next_state;
   
-
   switch(cur_state) {
   case sDEFAULT_PATTERN:
     if (rec_button_pressed){
@@ -331,58 +272,45 @@ state update_fsm(state cur_state) {
     } else {
       next_state = sDEFAULT_PATTERN;
       display_default();
-//      Serial.println(next_state);
     }
     break;
   case sRECIEVE_CONNECTION:
     if (music_received){
-      //TODO: this is temporary
       Serial.println("leaving recieve music");
       music_playing = true;
       rec_button_pressed = false;
+      Serial.write("playmusic");
       next_state = sMUSIC_PATTERN;
     } else {
       receive_music();
- 
-      // TODO update variables
       next_state = sRECIEVE_CONNECTION;
     }
   break;
   case sMUSIC_PATTERN:
     if (music_playing){
       display_pattern();
-      // TODO update variables
-      music_playing = (cur_song_spot + FREQS_PER_TIME) < song_length;  //make sure theres more music to be played
-      cur_song_spot = cur_song_spot + FREQS_PER_TIME;
-
+      music_playing = (cur_song_spot + FREQS_PER_TIME) < song_length; //make sure theres more music to be played
+      cur_song_spot = cur_song_spot + FREQS_PER_TIME;                 //increment to the next "chunk" of the song
       next_state = sMUSIC_PATTERN;
 
-      if(rec_button_pressed){
+      if(rec_button_pressed){                                         //if we have pressed the button during a song
         wait_for_receive();
         next_state = sRECIEVE_CONNECTION;
       }
     } else {
-      //maybe just wait here forever in order to actually use the WDT for something...
-       next_state = sDEFAULT_PATTERN;
+       next_state = sDEFAULT_PATTERN;                                 //revert to the default display pattern
     }
    break;
   }
-//  Serial.print(cur_state);
-//  Serial.print(" -> ");
-//  Serial.println(next_state);
+
   return next_state;
 }
 
 
-
+//Watchdog timer warning function
 void WDT_Handler() {
-  // Clear interrupt register flag
-  // (reference register with WDT->register_name.reg)
-//  WDT->INTFLAG.reg = WDT_INTFLAG_RESETVALUE;
   WDT->INTFLAG.reg = WDT_INTFLAG_EW;
   WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
-  // Warn user that a watchdog reset may happen
-//  delay(2000);
   Serial.println("might reset");
 }
 
