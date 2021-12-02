@@ -4,8 +4,10 @@
 #define NUM_LEDS 60
 #define LED_DATA_PIN 7
 #define LED_TYPE WS2812B
-#define BRIGHTNESS 30
+#define BRIGHTNESS 50
 #define SATURATION 255
+#define BLUR_RATE BRIGHTNESS/3
+#define BLUR_SPREAD 2
 #define POTEN_PIN 4
 #define REC_BTN_PIN 5
 #define MAX_CHSV_ANGLE 240
@@ -238,25 +240,65 @@ void receive_music(){
   }
 }
 
+String c = "100";
+int vol;
 //Function which displays one unit time piece of the song on the LED strip
 void display_pattern(){
   FastLED.clear();
   WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
   int inc;
 
+  if(Serial.available() > 0) {
+    c = "";
+    char f = Serial.read();
+    c += f;
+    f = Serial.read();
+//    Serial.println(f, HEX);
+    c += f;
+    
+//    String d = c + "aaaaa";
+    int cur_vol;
+    cur_vol = c[1];
+    cur_vol = cur_vol *256;
+    cur_vol = cur_vol | c[0];
+    vol = cur_vol;
+
+    
+//    Serial.write(d, sizeof(d));
+  }
+  
+  
+//    c = Serial.readString();
+//    String d = c + "aaaaa";
+//    Serial.print(d);
+   WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
+//  String c = "100";
+//  int vol = c.toInt() % 101;
+//  Serial.println(vol);
+  int br = map(vol, 0, 100, 5, 255);
+
   //read shift from potentiometer to calculate LED colors
   shift = map(analogRead(POTEN_PIN), 0, 1023, 0, MAX_CHSV_ANGLE);
   
   //for each frequency in this chunk
   for(inc =0; inc<FREQS_PER_TIME; inc++){
+    WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
+    int smear;
     uint8_t curLED = song_data[cur_song_spot+inc];
-    leds[curLED] = CHSV((map(curLED, 0, NUM_LEDS, 0, MAX_CHSV_ANGLE) + shift) % MAX_CHSV_ANGLE, SATURATION, BRIGHTNESS);
+    for(smear=-1*BLUR_SPREAD; smear<=BLUR_SPREAD; smear++){
+      if(curLED+smear >= 0 and curLED+smear<NUM_LEDS){
+        leds[curLED+smear] = CHSV((map(curLED+smear, 0, NUM_LEDS, 0, MAX_CHSV_ANGLE) + shift) % MAX_CHSV_ANGLE, SATURATION-(abs(smear)*SATURATION/3), br);
+      } //-(abs(smear)*(br/BLUR_SPREAD))
+    }
   }
   
   FastLED.show();
 
   //TODO: ADJUST THIS
-  delay(77);
+
+  //maybe make slightly higher
+  delay(48);
+//  delay(200);
 }
 
 //Function to update our FSM 

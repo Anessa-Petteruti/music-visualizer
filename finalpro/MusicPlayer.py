@@ -3,10 +3,11 @@ import wave
 import time
 from pynput import keyboard
 import serial
+import osascript
 
 
 p = pyaudio.PyAudio()
-arduino = serial.Serial(port='/dev/cu.usbmodem1451101', baudrate=9600, timeout=.1)
+arduino = serial.Serial(port='/dev/cu.usbmodem143301', baudrate=9600, timeout=.1)
 
 FILENAMES = ['wav_files/CantinaBand60.wav', 'wav_files/hot-cross-buns.wav']
 NUMBER_OF_SONGS = len(FILENAMES)
@@ -58,7 +59,13 @@ while True:
         stream.start_stream()
 
         while stream.is_active() or paused==True:
+            result = osascript.osascript('get volume settings')
+            volInfo = result[1].split(',')
+            outputVol = int(volInfo[0].replace('output volume:', ''))
+            # print(outputVol)
+            arduino.write(outputVol.to_bytes(2,byteorder='little'))
             recieved = str(arduino.readline())
+            print(recieved)
             if(recieved == "b'stopmusic'"):
                 # on_press(keyboard.Key.space)
                 stream.stop_stream()
