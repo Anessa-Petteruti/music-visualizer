@@ -11,37 +11,28 @@ import os
 # python3 -m flask run --host:<ipv4address>
 app = Flask(__name__)
 
-# filename = "wav_files/CantinaBand60.wav"
-# FILENAMES = ['wav_files/CantinaBand60.wav', 'wav_files/hot-cross-buns.wav']
+
 ALLOWED_EXTENSIONS = {'wav'}
 app.config['UPLOAD_FOLDER'] = 'wav_files'
-# NUMBER_OF_SONGS = len(FILENAMES)
 song_number = 0
 
 
 @app.route("/data")
 def hello_world():
     global song_number
-    # global NUMBER_OF_SONGS
-    # global FILENAMES
     FILENAMES = glob.glob("./wav_files/*.wav")
     NUMBER_OF_SONGS = len(FILENAMES)
     song_number = (song_number + 1) % NUMBER_OF_SONGS
     print(FILENAMES)
     filename = FILENAMES[song_number]
+    # filename = "./wav_files/lights-30s.wav"
 
-    # filename = 'wav_files/hot-cross-buns.wav'
     string = fft.freq_samples(filename)
     output = len(string).to_bytes(2,byteorder='little') + string
     print("len output:::")
     print(len(output))
-    # print(output)
-    # print(string)
-    return len(string).to_bytes(2,byteorder='little') + string
 
-# @app.route('/helloesp')
-# def helloHandler():
-#     return 'Hello ESP8266, from Flask'
+    return len(string).to_bytes(2,byteorder='little') + string
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -69,7 +60,7 @@ def helloHandler():
     return '''
     <!doctype html>
     <title>Arduino Song Upload</title>
-    <body syle="display: flex; flex-direction: column; align-items: center; justify-content:center; 
+    <body style="display: flex; flex-direction: column; align-items: center; justify-content:center;
     color: white; background-color: #323233">
         <h1>Upload new .wav file to play</h1>
             <form method=post enctype=multipart/form-data>

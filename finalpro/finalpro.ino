@@ -10,7 +10,7 @@
 #define BLUR_SPREAD 2
 #define POTEN_PIN 4
 #define REC_BTN_PIN 5
-#define MAX_CHSV_ANGLE 240
+#define MAX_CHSV_ANGLE 360
 #define MAX_SONG_LEN 10000
 CRGB leds[NUM_LEDS];
 EasyButton recButton(REC_BTN_PIN);
@@ -140,10 +140,10 @@ void display_default() {
   WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
   
   for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CHSV((map(i, 0, NUM_LEDS-1, 0, MAX_CHSV_ANGLE) + default_light_shift) % MAX_CHSV_ANGLE, SATURATION, BRIGHTNESS);
+    leds[i] = CHSV((map(i, 0, NUM_LEDS-1, 0, 240) + default_light_shift) % 240, SATURATION, BRIGHTNESS);
   }
   FastLED.show();
-  default_light_shift = (default_light_shift + 10) % MAX_CHSV_ANGLE;
+  default_light_shift = (default_light_shift + 10) % 240;
   delay(75);
 }
 
@@ -196,8 +196,8 @@ void receive_music(){
       }
   }
 
-  Serial.println(counter);
-  Serial.println("HELLO");
+//  Serial.println(counter);
+//  Serial.println("HELLO");
 
   int i;
   int breaker = 0;
@@ -253,28 +253,18 @@ void display_pattern(){
     char f = Serial.read();
     c += f;
     f = Serial.read();
-//    Serial.println(f, HEX);
     c += f;
     
-//    String d = c + "aaaaa";
     int cur_vol;
     cur_vol = c[1];
     cur_vol = cur_vol *256;
     cur_vol = cur_vol | c[0];
     vol = cur_vol;
-
-    
-//    Serial.write(d, sizeof(d));
   }
   
-  
-//    c = Serial.readString();
-//    String d = c + "aaaaa";
-//    Serial.print(d);
+ 
    WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
-//  String c = "100";
-//  int vol = c.toInt() % 101;
-//  Serial.println(vol);
+
   int br = map(vol, 0, 100, 5, 255);
 
   //read shift from potentiometer to calculate LED colors
@@ -287,7 +277,7 @@ void display_pattern(){
     uint8_t curLED = song_data[cur_song_spot+inc];
     for(smear=-1*BLUR_SPREAD; smear<=BLUR_SPREAD; smear++){
       if(curLED+smear >= 0 and curLED+smear<NUM_LEDS){
-        leds[curLED+smear] = CHSV((map(curLED+smear, 0, NUM_LEDS, 0, MAX_CHSV_ANGLE) + shift) % MAX_CHSV_ANGLE, SATURATION-(abs(smear)*SATURATION/3), br);
+        leds[curLED+smear] = CHSV((map(curLED+smear, 0, NUM_LEDS, 0, MAX_CHSV_ANGLE) + shift) % MAX_CHSV_ANGLE, SATURATION-(abs(smear)*SATURATION/BLUR_SPREAD), br-(abs(smear)*br/BLUR_SPREAD));
       } //-(abs(smear)*(br/BLUR_SPREAD))
     }
   }
@@ -297,8 +287,8 @@ void display_pattern(){
   //TODO: ADJUST THIS
 
   //maybe make slightly higher
-  delay(48);
-//  delay(200);
+  delay(53);
+//  delay(1000);
 }
 
 //Function to update our FSM 
