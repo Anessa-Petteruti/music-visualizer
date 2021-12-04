@@ -23,12 +23,12 @@ EasyButton recButton(REC_BTN_PIN);
 #include <WiFi101.h>
 WiFiClient client;
 
-char ssid[] = "Ligma2";        // your network SSID (name)
+char ssid[] = "Brown-Guest";        // your network SSID (name)
 char pass[] = "politephoenix279";    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;
 
 //char server[] = "10.38.44.7"; // your computers ipv4 address
-char server[] = "192.168.5.128";
+char server[] = "172.18.129.153";
 //SONG VARIABLES
 uint8_t song_buf[MAX_SONG_LEN];
 uint8_t* song_data;
@@ -106,8 +106,8 @@ void setup_wifi() {
     Serial.print("Attempting to connect to SSID: ");
     Serial.println(ssid);
     
-    status = WiFi.begin(ssid, pass);  //if using password
-//    status = WiFi.begin(ssid);  //if no password
+//    status = WiFi.begin(ssid, pass);  //if using password
+    status = WiFi.begin(ssid);  //if no password
     WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
     delay(1000);
   }
@@ -210,8 +210,8 @@ void receive_music(){
       breaker = i+4;
     }
   }
-  Serial.println("breaker");
-  Serial.println(breaker);
+//  Serial.println("breaker");
+//  Serial.println(breaker);
 
   //set pointer to the start of the actual payload
   song_data = &(song_buf[breaker]);
@@ -232,8 +232,8 @@ void receive_music(){
   //+2 to account for first two bytes representing data length
   cur_song_spot = 2;
   
-  Serial.println("length");
-  Serial.println(total_len);
+//  Serial.println("length");
+//  Serial.println(total_len);
 
   if (!client.connected()) {
     Serial.println("client disconnected");
@@ -309,7 +309,7 @@ state update_fsm(state cur_state) {
     break;
   case sRECIEVE_CONNECTION:
     if (music_received){
-      Serial.println("leaving recieve music");
+//      Serial.println("leaving recieve music");
       music_playing = true;
       rec_button_pressed = false;
       Serial.write("playmusic");

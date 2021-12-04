@@ -1,17 +1,14 @@
-
-
 from __future__ import print_function
 import scipy.io.wavfile as wavfile
 import scipy
-import scipy.fftpack
-from scipy.fftpack import fft
-from scipy.signal import argrelextrema
+from scipy.fftpack import fft, fftfreq
 import numpy as np
 from matplotlib import pyplot as plt
 # # ==============================================
 time_period = 0.1 # FFT time period (in seconds). Can comfortably process time frames from 0.05 seconds - 10 seconds
 # # ==============================================
 
+#Function which takes in a wav filename and returns a list of the LED ids to light up
 def freq_samples(filename):
     fs_rate, signal_original = wavfile.read(filename)
     total_time = int(np.floor(len(signal_original)/fs_rate))
@@ -30,36 +27,35 @@ def freq_samples(filename):
 
     freq_output = []
 
+    #For each "chunk" in this song
     for i in sample_range:
-
-        # print ("Processing: %d / %d (%d%%)" % (i/time_period + 1, total_samples, (i/time_period + 1)*100/total_samples))
 
         sample_start = int(i*fs_rate)
         sample_end = int((i+time_period)*fs_rate)
+        print("signal shape")
+        print(signal_original.shape)
+        print(len(signal_original.shape))
 
-        # if signal_original.shape ->
+        #Logic in case there are multiple channels in the file
         if(len(signal_original.shape) == 2):
             signal = signal_original[sample_start:sample_end, :]
         else:
             signal = signal_original[sample_start:sample_end]
 
         l_audio = len(signal.shape)
-        #print ("Channels", l_audio)
         if l_audio == 2:
             signal = signal.sum(axis=1) / 2
         N = signal.shape[0]
-        #print ("Complete Samplings N", N)
 
         secs = N / float(fs_rate)
-        # print ("secs", secs)
         Ts = 1.0/fs_rate # sampling interval in time
-        #print ("Timestep between samples Ts", Ts)
-
         t = scipy.arange(0, secs, Ts) # time vector as scipy arange field / numpy.ndarray
 
+        #This fft function gets the amplitudes essentially
         FFT = abs(fft(signal))
         FFT_side = FFT[range(int(N/2))] # one side FFT range
 
+        #This fft function gets the corresponding frequencies
         freqs = scipy.fftpack.fftfreq(signal.size, t[1]-t[0])
         fft_freqs = np.array(freqs)
         freqs_side = freqs[range(int(N/2))] # one side frequency range
@@ -82,33 +78,17 @@ def freq_samples(filename):
             FFT_side_norm = FFT_side / max_value
         else:
             FFT_side_norm = FFT_side
-            # print("problem!")
 
         # Get indices of top 5 frequencies in each of the 600 buckets:
         freq_ind = np.argpartition(-FFT_side_norm, 5)[:5]
-        # print(freq_ind)
 
-        # Calculate amplitudes of FFT frequency values:
-        amplitudes = 1/total_samples * np.abs(FFT_side_norm)
-        # print(amplitudes.shape)
-
-        # Add amps and freqs to dictionary:
-        output_tuple_amp_freq.append((amplitudes, FFT_side_norm))
-
-
-        for tupley in range(len(output_tuple_amp_freq)):
-            # Get corresponding amplitudes at these indices:
-            top_freqs = [output_tuple_amp_freq[tupley][1][i] for i in freq_ind]
-
+        #Collect the frequencies for this chunk
         big_freqs = fft_freqs_side.take(freq_ind)
+        #Map the frequencies to LEDs on our LED strip
         big_freqs = (big_freqs//(max(big_freqs)/60))
-
-        final_fa.append((amplitudes, top_freqs))
-
         freq_output.extend(big_freqs)
 
-    final_fa_np = np.asarray(final_fa)
+    #Turn list of LED ids to byte list for more efficient transfer
+    freq_output = np.asarray(freq_output, dtype=np.uint8).tobytes()
 
-    freq_output = np.asarray(freq_output, dtype=np.uint8)
-
-    return freq_output.tobytes()
+    return freq_output
