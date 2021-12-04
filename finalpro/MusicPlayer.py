@@ -8,7 +8,7 @@ import glob
 
 
 p = pyaudio.PyAudio()
-arduino = serial.Serial(port='/dev/cu.usbmodem144301', baudrate=9600, timeout=.1)
+arduino = serial.Serial(port='/dev/cu.usbmodem1451101', baudrate=9600, timeout=.1)
 
 song_number = 0
 
