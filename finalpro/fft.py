@@ -3,7 +3,7 @@ import scipy.io.wavfile as wavfile
 import scipy
 from scipy.fftpack import fft, fftfreq
 import numpy as np
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 # # ==============================================
 time_period = 0.1 # FFT time period (in seconds). Can comfortably process time frames from 0.05 seconds - 10 seconds
 # # ==============================================
@@ -19,6 +19,7 @@ def freq_samples(filename):
     print ("total time: ", total_time)
     print ("sample time period: ", time_period)
     print ("total samples: ", total_samples)
+    print("sample range: ", sample_range)
 
     output_array = []
     output_tuple_amp_freq = []
@@ -29,6 +30,7 @@ def freq_samples(filename):
 
     #For each "chunk" in this song
     for i in sample_range:
+        print("i: ", i)
 
         sample_start = int(i*fs_rate)
         sample_end = int((i+time_period)*fs_rate)
@@ -45,14 +47,17 @@ def freq_samples(filename):
         l_audio = len(signal.shape)
         if l_audio == 2:
             signal = signal.sum(axis=1) / 2
-        N = signal.shape[0]
 
-        secs = N / float(fs_rate)
+        N = signal.shape[0] # number of samplings
+        #print ("Complete Samplings N", N)
+
+        secs = N / float(fs_rate) # number of samplings divided by sampling rate = total seconds
+        # print ("secs", secs)
         Ts = 1.0/fs_rate # sampling interval in time
         t = scipy.arange(0, secs, Ts) # time vector as scipy arange field / numpy.ndarray
 
         #This fft function gets the amplitudes essentially
-        FFT = abs(fft(signal))
+        FFT = abs(fft(signal)) # 2-d array where dimensions are: sampling intervals x frequencies present in song during each interval
         FFT_side = FFT[range(int(N/2))] # one side FFT range
 
         #This fft function gets the corresponding frequencies
