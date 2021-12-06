@@ -38,10 +38,6 @@ int song_length;
 
 #include "finalpro.h"
 
-
-
-
-
 state CURRENT_STATE;
 
 int shift = 0;
@@ -191,7 +187,7 @@ void receive_music(){
       WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
       if (client.available()) {
         WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
-        int c = client.read(readptr, 6157);
+        int c = client.read(readptr, MAX_SONG_LEN);
         readptr = &(readptr[c+1]);
         counter += 1;
       }
