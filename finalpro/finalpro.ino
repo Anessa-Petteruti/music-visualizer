@@ -27,7 +27,6 @@ char ssid[] = "Brown-Guest";        // your network SSID (name)
 char pass[] = "politephoenix279";    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;
 
-//char server[] = "10.38.44.7"; // your computers ipv4 address
 char server[] = "172.18.129.153";
 //SONG VARIABLES
 uint8_t song_buf[MAX_SONG_LEN];
@@ -37,10 +36,6 @@ int song_length;
 #define FREQS_PER_TIME 5
 
 #include "finalpro.h"
-
-
-
-
 
 state CURRENT_STATE;
 
@@ -132,7 +127,6 @@ void loop() {
 
 //Function that gets called when the button is pressed
 void recButtonHandle() {
-  //TODO update a button counter somewhere to note that a button has been pressed and that we should recieve music now from serial/wifi
   rec_button_pressed = true;
 }
 
@@ -162,8 +156,8 @@ void wait_for_receive(){
   rec_button_pressed = false;
 }
 
+//Function to post the GET request and read the music data from our server
 void receive_music(){
-//  Serial.write("in recieve music");
   Serial.write("stopmusic");
   
   for (int i = 0; i < NUM_LEDS; i++) {
@@ -175,8 +169,6 @@ void receive_music(){
 
   if (client.connect(server, 5000)) {
     WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
-
-//    Serial.println("connected to server");
 
     // Make a HTTP request:
     client.println("GET /data HTTP/1.1");
@@ -191,14 +183,11 @@ void receive_music(){
       WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
       if (client.available()) {
         WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
-        int c = client.read(readptr, 6157);
+        int c = client.read(readptr, MAX_SONG_LEN);
         readptr = &(readptr[c+1]);
         counter += 1;
       }
   }
-
-//  Serial.println(counter);
-//  Serial.println("HELLO");
 
   int i;
   int breaker = 0;
@@ -210,8 +199,6 @@ void receive_music(){
       breaker = i+4;
     }
   }
-//  Serial.println("breaker");
-//  Serial.println(breaker);
 
   //set pointer to the start of the actual payload
   song_data = &(song_buf[breaker]);
@@ -232,25 +219,21 @@ void receive_music(){
   //+2 to account for first two bytes representing data length
   cur_song_spot = 2;
   
-//  Serial.println("length");
-//  Serial.println(total_len);
-
   if (!client.connected()) {
     Serial.println("client disconnected");
     client.stop(); // do we want this?
   }
 }
 
-String c = "100";
-int vol;
 //Function which displays one unit time piece of the song on the LED strip
 void display_pattern(){
   FastLED.clear();
   WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
   int inc;
+  int vol;
 
   if(Serial.available() > 0) {
-    c = "";
+    String c = "";
     char f = Serial.read();
     c += f;
     f = Serial.read();
@@ -266,7 +249,7 @@ void display_pattern(){
  
    WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
 
-  int br = map(vol, 0, 100, 5, 255);
+  int vol_brightness = map(vol, 0, 100, 5, 255);
 
   //read shift from potentiometer to calculate LED colors
   shift = map(analogRead(POTEN_PIN), 0, 1023, 0, MAX_CHSV_ANGLE);
@@ -278,18 +261,17 @@ void display_pattern(){
     uint8_t curLED = song_data[cur_song_spot+inc];
     for(smear=-1*BLUR_SPREAD; smear<=BLUR_SPREAD; smear++){
       if(curLED+smear >= 0 and curLED+smear<NUM_LEDS){
-        leds[curLED+smear] = CHSV((map(curLED+smear, 0, NUM_LEDS, 0, MAX_CHSV_ANGLE) + shift) % MAX_CHSV_ANGLE, SATURATION-(abs(smear)*SATURATION/BLUR_SPREAD), br-(abs(smear)*br/BLUR_SPREAD));
-      } //-(abs(smear)*(br/BLUR_SPREAD))
+        //want to fade brightness and saturation across our "blur"
+        int sat = SATURATION-(abs(smear)*SATURATION/BLUR_SPREAD);
+        int bri = vol_brightness-(abs(smear)*br/BLUR_SPREAD);
+        int color = (map(curLED+smear, 0, NUM_LEDS, 0, MAX_CHSV_ANGLE) + shift) % MAX_CHSV_ANGLE;
+        leds[curLED+smear] = CHSV(color, sat, bri);
+      }
     }
   }
   
   FastLED.show();
-
-  //TODO: ADJUST THIS
-
-  //maybe make slightly higher
   delay(53);
-//  delay(1000);
 }
 
 //Function to update our FSM 
@@ -309,7 +291,6 @@ state update_fsm(state cur_state) {
     break;
   case sRECIEVE_CONNECTION:
     if (music_received){
-//      Serial.println("leaving recieve music");
       music_playing = true;
       rec_button_pressed = false;
       Serial.write("playmusic");
