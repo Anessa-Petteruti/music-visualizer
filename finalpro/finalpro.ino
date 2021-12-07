@@ -263,7 +263,7 @@ void display_pattern(){
       if(curLED+smear >= 0 and curLED+smear<NUM_LEDS){
         //want to fade brightness and saturation across our "blur"
         int sat = SATURATION-(abs(smear)*SATURATION/BLUR_SPREAD);
-        int bri = vol_brightness-(abs(smear)*br/BLUR_SPREAD);
+        int bri = vol_brightness-(abs(smear)*bri/BLUR_SPREAD);
         int color = (map(curLED+smear, 0, NUM_LEDS, 0, MAX_CHSV_ANGLE) + shift) % MAX_CHSV_ANGLE;
         leds[curLED+smear] = CHSV(color, sat, bri);
       }

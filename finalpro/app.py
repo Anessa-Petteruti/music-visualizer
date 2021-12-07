@@ -32,6 +32,17 @@ def hello_world():
 
     return output
 
+#Route which gives mock data to the arduino
+@app.route("/testdata")
+def test():
+    #Create mock data: 0,1...58,59,0,1... - 600 bytes total
+    string = np.arange(60, dtype=np.uint8).tobytes()
+    string = string*10
+    #Attatch information about the length for the arduino to know when the song ends
+    output = len(string).to_bytes(2,byteorder='little') + string
+
+    return output
+
 
 #Function to ensure that people upload only allowed files
 def allowed_file(filename):
