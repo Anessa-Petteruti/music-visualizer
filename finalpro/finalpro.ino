@@ -23,7 +23,7 @@ EasyButton recButton(REC_BTN_PIN);
 WiFiClient client;
 
 char ssid[] = "Brown-Guest";        // your network SSID (name)
-char pass[] = "politephoenix279";    // your network password (use for WPA, or use as key for WEP)
+char pass[] = "<password>";    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;
 
 char server[] = "192.168.1.170"; // your IPv4 address
