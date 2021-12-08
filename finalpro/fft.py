@@ -19,7 +19,6 @@ def freq_samples(filename):
     print ("total time: ", total_time)
     print ("sample time period: ", time_period)
     print ("total samples: ", total_samples)
-    print("sample range: ", sample_range)
 
     output_array = []
     output_tuple_amp_freq = []
@@ -30,7 +29,6 @@ def freq_samples(filename):
 
     #For each "chunk" in this song
     for i in sample_range:
-        print("i: ", i)
 
         sample_start = int(i*fs_rate)
         sample_end = int((i+time_period)*fs_rate)
@@ -49,10 +47,8 @@ def freq_samples(filename):
             signal = signal.sum(axis=1) / 2
 
         N = signal.shape[0] # number of samplings
-        #print ("Complete Samplings N", N)
 
         secs = N / float(fs_rate) # number of samplings divided by sampling rate = total seconds
-        # print ("secs", secs)
         Ts = 1.0/fs_rate # sampling interval in time
         t = scipy.arange(0, secs, Ts) # time vector as scipy arange field / numpy.ndarray
 

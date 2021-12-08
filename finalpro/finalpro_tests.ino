@@ -24,7 +24,8 @@ bool test_transition(state start_state,
                      state_vars start_state_vars,
                      state_vars end_state_vars,
                      bool verbos);
-/*        
+
+/*
  * Helper function for printing states
  */
 char* s2str(state s) {
@@ -46,7 +47,7 @@ char* s2str(state s) {
  * Returns true if this is the case (test passed) and false otherwise (test failed)
  */
 bool test_transition(state start_state,
-                     state end_state, 
+                     state end_state,
                      state_vars start_state_vars,
                      state_vars end_state_vars,
                      bool verbos) {

@@ -22,8 +22,8 @@ EasyButton recButton(REC_BTN_PIN);
 #include <WiFi101.h>
 WiFiClient client;
 
-char ssid[] = "neskalicious";        // your network SSID (name)
-char pass[] = "cordfareslapbeef";    // your network password (use for WPA, or use as key for WEP)
+char ssid[] = "Brown-Guest";        // your network SSID (name)
+char pass[] = "politephoenix279";    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;
 
 char server[] = "192.168.1.170"; // your IPv4 address
@@ -191,16 +191,16 @@ void display_pattern() {
       }
     }
   }
-  
+
   FastLED.show();
   delay(53);
 }
 
-//Function to update our FSM 
+//Function to update our FSM
 state update_fsm(state cur_state) {
   WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
   state next_state;
-  
+
   switch(cur_state) {
   case sDEFAULT_PATTERN:
     if (rec_button_pressed) {
