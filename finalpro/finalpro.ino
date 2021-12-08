@@ -227,7 +227,7 @@ state update_fsm(state cur_state) {
     if (rec_button_pressed) {                                         //if we have pressed the button during a song
         wait_for_receive();
         next_state = sRECIEVE_CONNECTION;
-    }else if (music_playing) {
+    } else if (music_playing) {
       display_pattern();
       music_playing = (cur_song_spot + FREQS_PER_TIME) < song_length; //make sure theres more music to be played
       cur_song_spot = cur_song_spot + FREQS_PER_TIME;                 //increment to the next "chunk" of the song
