@@ -80,13 +80,13 @@ EXPECTED_FOUR_TONES = np.asarray(RAW_FOUR_TONES, dtype=np.uint8).tobytes()
 
 def test_fft():
     single_wave_result = freq_samples(SINGLE_WAVE_TEST_FILE)
-    # expect length of 150, because samples taken every 10ms, song is 3s, and taking top 5 frequencies: 30 * 5 = 150
+    # expect length of 150: samples taken every 10ms, song is 3s, taking top 5 frequencies: 10 * 3 * 5 = 150
     assert(len(single_wave_result) == 150)
     for i, val in enumerate(single_wave_result):
         assert(val == EXPECTED_SINGLE_WAVE[i])
 
     four_tones_result = freq_samples(FOUR_TONES_TEST_FILE)
-    # expect length of 550: samples every 10ms, song is 11s, taking top 5 frequencies, 10 * 5 * 11 = 550
+    # expect length of 550: samples taken every 10ms, song is 11s, taking top 5 frequencies: 10 * 11 * 5 = 550
     assert(len(four_tones_result) == 550)
     for i, val in enumerate(four_tones_result):
         assert(val == EXPECTED_FOUR_TONES[i])

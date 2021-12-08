@@ -3,6 +3,7 @@ from werkzeug.utils import secure_filename
 import os
 import fft
 import glob
+import numpy as np
 
 # python3 -m pip install flask
 # have the arduino read from your internal ipv4 address (you can find this by runing 'ipconfig' or 'ifconfig')
@@ -38,7 +39,7 @@ def test():
     #Create mock data: 0,1...58,59,0,1... - 600 bytes total
     string = np.arange(60, dtype=np.uint8).tobytes()
     string = string*10
-    #Attatch information about the length for the arduino to know when the song ends
+    #Attach information about the length for the arduino to know when the song ends
     output = len(string).to_bytes(2,byteorder='little') + string
 
     return output
