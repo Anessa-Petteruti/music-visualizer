@@ -26,7 +26,7 @@ char ssid[] = "Brown-Guest";        // your network SSID (name)
 char pass[] = "<password>";    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;
 
-char server[] = "192.168.1.170"; // your IPv4 address
+char server[] = "192.168.5.128"; // your IPv4 address
 
 /* SONG VARIABLES */
 uint8_t song_buf[MAX_SONG_LEN];
@@ -224,16 +224,14 @@ state update_fsm(state cur_state) {
     }
   break;
   case sMUSIC_PATTERN:
-    if (music_playing) {
+    if (rec_button_pressed) {                                         //if we have pressed the button during a song
+        wait_for_receive();
+        next_state = sRECIEVE_CONNECTION;
+    }else if (music_playing) {
       display_pattern();
       music_playing = (cur_song_spot + FREQS_PER_TIME) < song_length; //make sure theres more music to be played
       cur_song_spot = cur_song_spot + FREQS_PER_TIME;                 //increment to the next "chunk" of the song
       next_state = sMUSIC_PATTERN;
-
-      if (rec_button_pressed) {                                         //if we have pressed the button during a song
-        wait_for_receive();
-        next_state = sRECIEVE_CONNECTION;
-      }
     } else {
        next_state = sDEFAULT_PATTERN;                                 //revert to the default display pattern
     }
