@@ -32,9 +32,6 @@ def freq_samples(filename):
 
         sample_start = int(i*fs_rate)
         sample_end = int((i+time_period)*fs_rate)
-        print("signal shape")
-        print(signal_original.shape)
-        print(len(signal_original.shape))
 
         #Logic in case there are multiple channels in the file
         if(len(signal_original.shape) == 2):
